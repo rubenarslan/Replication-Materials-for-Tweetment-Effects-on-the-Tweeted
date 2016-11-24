@@ -11,7 +11,6 @@
 library(dplyr)
 library(foreign)
 
-setwd("C:/Users/kevin/Documents/GitHub/Replication-Materials-for-Tweetment-Effects-on-the-Tweeted/")
 
 ##choose which assumption--the conservative assumption file replicates the analysis in the appendix
 
@@ -34,12 +33,12 @@ wk1_rac<-summary(lm(racism.scores.post.1wk ~ treat.f + log.followers +  racism.s
 
 ##second model looks only at the most anonymous users
 
-wk1_rac_anon<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+wk1_rac_anon<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
                          data = filter(data,anonymity>1) ))
 
 ##third model looks at non-anonymous users
 
-wk1_rac_id<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+wk1_rac_id<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
                        data = filter(data,anonymity<2)))
 
 
@@ -49,10 +48,10 @@ wk1_rac_id<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racis
 
 wk2_rac<-summary(lm(racism.scores.post.2wk ~ treat.f+ log.followers +  racism.scores.pre.2mon, data = data))
 
-wk2_rac_anon<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+wk2_rac_anon<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
                          data = filter(data,anonymity>1)))
 
-wk2_rac_id<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+wk2_rac_id<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
                        data = filter(data,anonymity<2)))
 
 
@@ -60,10 +59,10 @@ wk2_rac_id<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racis
 
 mon1_rac<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon, data = data))
 
-mon1_rac_anon<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+mon1_rac_anon<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
                           data = filter(data,anonymity>1)))
 
-mon1_rac_id<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+mon1_rac_id<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
                         data = filter(data,anonymity<2)))
 
 
@@ -73,10 +72,10 @@ mon1_rac_id<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + rac
 #2 months
 mon2_rac<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers +  racism.scores.pre.2mon, data = data))
 
-mon2_rac_anon<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+mon2_rac_anon<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
                           data = filter(data,anonymity>1)))
 
-mon2_rac_id<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon, 
+mon2_rac_id<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
                         data = filter(data,anonymity<2)))
 
 

@@ -1,0 +1,397 @@
+---
+output:
+  html_document:
+    self_contained: FALSE
+    theme: "paper"
+---
+
+# Tweetment {.tabset}
+
+## Load data
+
+```{r}
+options(stringsAsFactors = F)
+library(dplyr)
+
+##choose which assumption--the conservative assumption file replicates the analysis in the appendix
+
+standard <- read.csv(file = "data/data_anonymized_standard_assumption.csv")
+
+conservative <- read.csv(file = "data/data_anonymized_conservative_assumption.csv")
+
+
+##encode treatment varaible as a factor
+standard$treatment = recode( standard$treat.f, "0" = "Control Group","1"= "In-Group/Low","2" = "Out-Group/Low","3" = "In-Group/High","4" = "Out-Group/High")
+standard$treat.f <- as.factor(standard$treat.f)
+
+conservative$treatment = recode( conservative$treat.f, "0" = "Control Group","1"= "In-Group/Low","2" = "Out-Group/Low","3" = "In-Group/High","4" = "Out-Group/High")
+conservative$treat.f<-as.factor(conservative$treat.f)
+```
+
+
+## Standard assumption
+```{r}
+#1 week time period
+
+##first model is the full analysis
+
+(wk1_rac<-summary(lm(racism.scores.post.1wk ~ treat.f + log.followers +  racism.scores.pre.2mon, data = standard)))
+
+##second model looks only at the most anonymous users
+
+(wk1_rac_anon<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                         data = filter(standard,anonymity>1) )))
+
+##third model looks at non-anonymous users
+
+(wk1_rac_id<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                       data = filter(standard,anonymity<2))))
+
+
+
+#2weeks
+
+
+(wk2_rac<-summary(lm(racism.scores.post.2wk ~ treat.f+ log.followers +  racism.scores.pre.2mon, data = standard)))
+
+(wk2_rac_anon<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                         data = filter(standard,anonymity>1))))
+
+(wk2_rac_id<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                       data = filter(standard,anonymity<2))))
+
+
+#1month
+
+(mon1_rac<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon, data = standard)))
+
+(mon1_rac_anon<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                          data = filter(standard,anonymity>1))))
+
+(mon1_rac_id<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                        data = filter(standard,anonymity<2))))
+
+
+
+#2 months
+(mon2_rac<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers +  racism.scores.pre.2mon, data = standard)))
+
+(mon2_rac_anon<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                          data = filter(standard,anonymity>1))))
+
+(mon2_rac_id<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+                        data = filter(standard,anonymity<2))))
+```
+
+## Plot standard
+
+```
+#########################################################################;
+#  File-Name: plot_results.R				                                    #;
+#  Date: September 28, 2016				                                    	#;
+#  Author:	KM							                                            #;
+#  Purpose:	Plot results                                                #;
+#########################################################################;
+```
+
+```{r}
+#############################This is to run the models divided by anonymity models
+
+models<-list(   wk2_rac_anon, wk2_rac_id, mon1_rac_anon, mon1_rac_id,  
+              mon2_rac_anon, mon2_rac_id)
+
+modelnames<-list(   "wk2_rac_anon", "wk2_rac_id", "mon1_rac_anon", "mon1_rac_id",  
+                    "mon2_rac_anon", "mon2_rac_id")
+
+
+##need to sepearate out the first ones to be the only ones that have labeled axes, for space
+wk1_models<-list(wk1_rac_anon, wk1_rac_id)
+
+wk1_modelnames<-list("wk1_rac_anon", "wk1_rac_id")
+
+
+
+##############################This is to run the full models 
+
+models<-list(   wk2_rac,  mon1_rac,  mon2_rac)
+modelnames<-list(   "wk2_rac",   "mon1_rac",   "mon2_rac" )
+
+##need to sepearate out the first ones to be the only ones that have labeled axes, for space
+
+wk1_models<-list(wk1_rac)
+
+wk1_modelnames<-list("wk1_rac")
+
+
+
+##plot the wk1 models, with axis labels
+
+for (i in 1:length(wk1_models)){
+  ##change length, one fewer coefficient
+  coefs <- t(t(c(wk1_models[[i]]$coefficients[2:6,1])))
+  ses <- t(t(c(wk1_models[[i]]$coefficients[2:6,2])))
+  y.axis <- c(1:5)
+  #fix x axis to the max values any coefficients take for comparison
+  min <- (-.65)
+  max <- .55
+  var.names <- c("In-Group/Low","Out-Group/Low","In-Group/High","Out-Group/High", "Log Followers")
+  adjust <- 0
+  ##########################
+  ###change filename depending on the data source
+  ##########################
+  par(mar=c(4,6,1,1))
+  
+  plot(coefs[,1], y.axis, type = "p", axes = F, xlab = "Change in Average Daily Slur Use", ylab = "", pch = 19, cex = .8, 
+       xlim=c(min,max),ylim = c(.5,5.5), main = "")
+  rect(min,.5,max,1.5, col = c("grey97"), border="grey90", lty = 2)
+  rect(min,1.5,max,2.5, col = c("grey95"), border="grey90", lty = 2)
+  rect(min,2.5,max,3.5, col = c("grey97"), border="grey90", lty = 2)
+  rect(min,3.5,max,4.5, col = c("grey95"), border="grey90", lty = 2)
+  rect(min,4.5,max,5.5, col = c("grey97"), border="grey90", lty = 2)
+  
+  axis(1, tick = T,cex.axis = .75, mgp = c(2,.7,0))
+  axis(2, at = y.axis, label = var.names, las = 1, tick = FALSE, cex.axis =.8, hadj=1)
+  abline(h = y.axis, lty = 2, lwd = .5, col = "white")
+  segments(coefs[,1]-qnorm(.975)*ses[,1], y.axis+2*adjust, coefs[,1]+qnorm(.975)*ses[,1], y.axis+2*adjust, lwd =  1)
+  
+  segments(coefs[,1]-qnorm(.95)*ses[,1], y.axis+2*adjust-.035, coefs[,1]-qnorm(.95)*ses[,1], y.axis+2*adjust+.035, lwd = .9)
+  segments(coefs[,1]+qnorm(.95)*ses[,1], y.axis+2*adjust-.035, coefs[,1]+qnorm(.95)*ses[,1], y.axis+2*adjust+.035, lwd = .9)
+  points(coefs[,1], y.axis+2*adjust,pch=21,cex=.8, bg="white")
+  abline(v=0, lty = 2) # draw dotted line through 0 for reference line for null sign ificance hypothesis testing
+
+}
+
+##plot the other models, without axis labels
+
+for (i in 1:length(models)){
+  ##change length, one fewer coefficient
+  coefs <- t(t(c(models[[i]]$coefficients[2:6,1])))
+  ses <- t(t(c(models[[i]]$coefficients[2:6,2])))
+  y.axis <- c(1:5)
+  #fix x axis to the max values any coefficients take for comparison
+  min <- (-.65)
+  max <- .55
+  #var.names <- c("In-group/Low Followers","Out-group/Low Followers","In-group/High Followers","Out-group/High Followers", "Log Followers")
+  adjust <- 0
+  ##########################
+  ###change filename depending on the data source
+  ##########################
+  par(mar=c(4,1,1,1))
+  
+  plot(coefs[,1], y.axis, type = "p", axes = F, xlab = "", ylab = "", pch = 19, cex = .8, 
+       xlim=c(min,max),ylim = c(.5,5.5), main = "")
+  rect(min,.5,max,1.5, col = c("grey97"), border="grey90", lty = 2)
+  rect(min,1.5,max,2.5, col = c("grey95"), border="grey90", lty = 2)
+  rect(min,2.5,max,3.5, col = c("grey97"), border="grey90", lty = 2)
+  rect(min,3.5,max,4.5, col = c("grey95"), border="grey90", lty = 2)
+  rect(min,4.5,max,5.5, col = c("grey97"), border="grey90", lty = 2)
+  ?axis
+  axis(1, tick = T,cex.axis = .75, mgp = c(2,.7,0))
+  #axis(2, at = y.axis, label = var.names, las = 1, tick = FALSE, cex.axis =.8, hadj=1)
+  abline(h = y.axis, lty = 2, lwd = .5, col = "white")
+  segments(coefs[,1]-qnorm(.975)*ses[,1], y.axis+2*adjust, coefs[,1]+qnorm(.975)*ses[,1], y.axis+2*adjust, lwd =  1)
+  
+  segments(coefs[,1]-qnorm(.95)*ses[,1], y.axis+2*adjust-.035, coefs[,1]-qnorm(.95)*ses[,1], y.axis+2*adjust+.035, lwd = .9)
+  segments(coefs[,1]+qnorm(.95)*ses[,1], y.axis+2*adjust-.035, coefs[,1]+qnorm(.95)*ses[,1], y.axis+2*adjust+.035, lwd = .9)
+  points(coefs[,1], y.axis+2*adjust,pch=21,cex=.8, bg="white")
+  abline(v=0, lty = 2) # draw dotted line through 0 for reference line for null sign ificance hypothesis testing
+
+}
+```
+
+
+## Conservative assumption
+
+```{r}
+#1 week time period
+
+##first model is the full analysis
+
+(wk1_rac<-summary(lm(racism.scores.post.1wk ~ treat.f + log.followers +  racism.scores.pre.2mon, data = conservative)))
+
+##second model looks only at the most anonymous users
+
+(wk1_rac_anon<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+												 data = filter(conservative,anonymity>1) )))
+
+##third model looks at non-anonymous users
+
+(wk1_rac_id<-summary(lm(racism.scores.post.1wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+											 data = filter(conservative,anonymity<2))))
+
+
+
+#2weeks
+
+
+(wk2_rac<-summary(lm(racism.scores.post.2wk ~ treat.f+ log.followers +  racism.scores.pre.2mon, data = conservative)))
+
+(wk2_rac_anon<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+												 data = filter(conservative,anonymity>1))))
+
+(wk2_rac_id<-summary(lm(racism.scores.post.2wk ~ treat.f  + log.followers + racism.scores.pre.2mon,
+											 data = filter(conservative,anonymity<2))))
+
+
+#1month
+
+(mon1_rac<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon, data = conservative)))
+
+(mon1_rac_anon<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+													data = filter(conservative,anonymity>1))))
+
+(mon1_rac_id<-summary(lm(racism.scores.post.1mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+												data = filter(conservative,anonymity<2))))
+
+
+
+
+
+#2 months
+(mon2_rac<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers +  racism.scores.pre.2mon, data = conservative)))
+
+(mon2_rac_anon<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+													data = filter(conservative,anonymity>1))))
+
+(mon2_rac_id<-summary(lm(racism.scores.post.2mon ~ treat.f  + log.followers + racism.scores.pre.2mon,
+												data = filter(conservative,anonymity<2))))
+```
+
+
+## Plot Conservative
+
+```{r}
+{
+  ##change length, one fewer coefficient
+  coefs <- t(t(c(models[[i]]$coefficients[2:6,1])))
+  ses <- t(t(c(models[[i]]$coefficients[2:6,2])))
+  y.axis <- c(1:5)
+  #fix x axis to the max values any coefficients take for comparison
+  min <- (-.65)
+  max <- .55
+  #var.names <- c("In-group/Low Followers","Out-group/Low Followers","In-group/High Followers","Out-group/High Followers", "Log Followers")
+  adjust <- 0
+  ##########################
+  ###change filename depending on the data source
+  ##########################
+  par(mar=c(4,1,1,1))
+  
+  plot(coefs[,1], y.axis, type = "p", axes = F, xlab = "", ylab = "", pch = 19, cex = .8, 
+       xlim=c(min,max),ylim = c(.5,5.5), main = "")
+  rect(min,.5,max,1.5, col = c("grey97"), border="grey90", lty = 2)
+  rect(min,1.5,max,2.5, col = c("grey95"), border="grey90", lty = 2)
+  rect(min,2.5,max,3.5, col = c("grey97"), border="grey90", lty = 2)
+  rect(min,3.5,max,4.5, col = c("grey95"), border="grey90", lty = 2)
+  rect(min,4.5,max,5.5, col = c("grey97"), border="grey90", lty = 2)
+  ?axis
+  axis(1, tick = T,cex.axis = .75, mgp = c(2,.7,0))
+  #axis(2, at = y.axis, label = var.names, las = 1, tick = FALSE, cex.axis =.8, hadj=1)
+  abline(h = y.axis, lty = 2, lwd = .5, col = "white")
+  segments(coefs[,1]-qnorm(.975)*ses[,1], y.axis+2*adjust, coefs[,1]+qnorm(.975)*ses[,1], y.axis+2*adjust, lwd =  1)
+  
+  segments(coefs[,1]-qnorm(.95)*ses[,1], y.axis+2*adjust-.035, coefs[,1]-qnorm(.95)*ses[,1], y.axis+2*adjust+.035, lwd = .9)
+  segments(coefs[,1]+qnorm(.95)*ses[,1], y.axis+2*adjust-.035, coefs[,1]+qnorm(.95)*ses[,1], y.axis+2*adjust+.035, lwd = .9)
+  points(coefs[,1], y.axis+2*adjust,pch=21,cex=.8, bg="white")
+  abline(v=0, lty = 2) # draw dotted line through 0 for reference line for null sign ificance hypothesis testing
+
+}
+```
+
+
+## Robustness analysis {.tabset}
+Using Bayesian regression modelling and a Poisson distribution.
+
+### Get counts
+Reproduce full analysis with a different distribution for the outcome (Poisson instead normal)
+
+```{r}
+library(ggplot2)
+standard$anonymity = factor(standard$anonymity)
+qplot(standard$racism.scores.post.1wk) # looks like Poisson or zero-inflated Poisson
+library(brms)
+standard$racism.counts.post.1wk = round(standard$racism.scores.post.1wk * 7)
+standard$racism.counts.post.2wk = round(standard$racism.scores.post.2wk * 14)
+standard$racism.counts.post.1mon = round(standard$racism.scores.post.1mon * 31)
+standard$racism.counts.post.2mon = round(standard$racism.scores.post.2mon * 62)
+table(standard$racism.counts.post.1wk <= standard$racism.counts.post.2wk)
+qplot(standard$racism.counts.post.1mon, standard$racism.counts.post.1wk)
+
+standard$racism.counts.post.2wk_inclusive = standard$racism.counts.post.2wk
+standard$racism.counts.post.2wk = standard$racism.counts.post.2wk - standard$racism.counts.post.1wk
+```
+
+### Week 1
+
+```{r}
+(wk1_rac <- brm(racism.counts.post.1wk ~ treatment + log.followers +  racism.scores.pre.2mon, data = standard, family = poisson))
+
+summary(wk1_rac)
+
+marginal_effects(wk1_rac)
+
+standard$racism.counts.post.2mon = round(standard$racism.scores.post.2mon * 30)
+```
+
+### Week 2 - Month 2
+
+Does the effect last? 
+We have to subtract the counts from the first week so as not to do pseudo-replication.
+```{r}
+(wk2i_rac <- brm(racism.counts.post.2wk_inclusive ~ treatment + log.followers +  racism.scores.pre.2mon, data = standard, family = poisson))
+marginal_effects(wk2i_rac)
+
+(wk2_rac <- brm(racism.counts.post.2wk ~ treatment + log.followers +  racism.scores.pre.2mon, data = standard, family = poisson))
+marginal_effects(wk2_rac)
+```
+
+```{r}
+standard$racism.counts.post.1mon = standard$racism.counts.post.1mon - standard$racism.counts.post.2wk
+(mon1_rac <- brm(racism.counts.post.1mon ~ treatment + log.followers +  racism.scores.pre.2mon, data = standard, family = poisson))
+summary(mon1_rac)
+marginal_effects(mon1_rac)
+```
+```{r}
+(mon2_rac <- brm(racism.counts.post.2mon ~ treatment + log.followers +  racism.scores.pre.2mon, data = standard, family = poisson))
+summary(mon2_rac)
+marginal_effects(mon2_rac)
+```
+
+```{r}
+(mon2_racanon <- brm(racism.counts.post.2mon ~ anonymity * treatment + log.followers +  racism.scores.pre.2mon, data = standard, family = poisson))
+summary(mon2_racanon)
+marginal_effects(mon2_racanon)
+```
+
+### go back in time
+
+Let's see whether the groups differed at the outset. Yes, some outliers, good to control for this heterogeneity.
+
+```{r}
+standard$racism.counts.pre.2mon = round(standard$racism.scores.pre.2mon * 62)
+(backwards_2m <- brm(racism.counts.pre.2mon ~ treatment + log.followers, data = standard, family = poisson))
+summary(backwards_2m)
+marginal_effects(backwards_2m)
+library(ggforce)
+ggplot(aes(treatment, racism.counts.pre.2mon), data = standard) + geom_sina()
+ggplot(aes(treatment, racism.counts.post.2mon), data = standard) + geom_sina() + scale_y_log10() + geom_pointrange(stat ="summary", fun.data = "mean_cl_boot")
+ggplot(aes(treatment, racism.counts.pre.2mon), data = standard) + geom_sina() + geom_pointrange(stat ="summary", fun.data = "mean_cl_boot", color = "red")
+ggplot(aes(treatment, racism.counts.post.2mon), data = standard) + geom_sina() + geom_pointrange(stat ="summary", fun.data = "mean_cl_boot", color = "red")
+```
+
+
+### Graph the effect
+```{r}
+ggplot(aes(racism.counts.pre.2mon, racism.counts.post.2mon), data = standard) + geom_jitter() + coord_cartesian(ylim = c(0,50), xlim = c(0, 50)) + geom_smooth(method = "lm")
+
+ggplot(aes(racism.counts.pre.2mon, racism.counts.post.2mon, colour = treatment), data = standard) + geom_jitter() + coord_cartesian(ylim = c(0,50), xlim = c(0, 50)) + geom_smooth(method = "lm")
+```
+
+
+### Interaction by level
+Are very active tweeters discouraged more/less?
+
+```{r}
+(mon2_rac_interact_with_pre <- brm(racism.counts.post.2mon ~ racism.scores.pre.2mon * treatment + log.followers, data = standard, family = poisson))
+summary(mon2_rac_interact_with_pre)
+```
+
